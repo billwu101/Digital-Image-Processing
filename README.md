@@ -2,10 +2,6 @@
 
 **Image Enhancement in the Spatial Domain**
 
-- **Student:** 吳晉緯 (Bill Wu)
-- **Student ID:** B11102129
-- **Department:** 電子工程系
-- **Date:** 2026-05-23
 - **Image A:** hurricane-Andrew.tif
 - **Image B:** Moon.jpeg
 
