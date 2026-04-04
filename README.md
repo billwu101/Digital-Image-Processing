@@ -144,5 +144,6 @@ lap_display = lap_display / max(lap_display(:)) * 255;
 
 ### 使用 AI 的部分
 
+
 1. 根據作業需求撰寫 `processImage` 函式（含 Laplacian 卷積、銳化、顯示三張圖）
 2. 將函式從 `SharpenFilter.m` 移到獨立的 `processImage.m` 檔案
