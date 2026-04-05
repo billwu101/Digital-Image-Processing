@@ -13,6 +13,17 @@ v = ifftshift(v - floor(N/2));
 [V, U] = meshgrid(v, u);
 D = sqrt(U.^2 + V.^2);
 
+
+% --- Save filter matrices ---
+if ~exist('GaussianFilter', 'dir')
+    mkdir('GaussianFilter');
+end
+for f = 1:length(D0_list)
+    D0 = D0_list(f);
+    H = exp(-(D .^ 2) / (2 * D0^2));
+    save(fullfile('GaussianFilter', sprintf('GaussianFilter_D0_%d.mat', D0)), 'H', 'D0');
+end
+
 % --- 2D image display ---
 figure('Name', '2D Gaussian Masks');
 for f = 1:length(D0_list)
@@ -25,6 +36,7 @@ for f = 1:length(D0_list)
     colorbar;
 end
 sgtitle('Gaussian Lowpass Filter Masks (2D)');
+save_figure('GaussianMask_2D');
 
 % --- 1D profile (center row) ---
 figure('Name', '1D Gaussian Profiles');
@@ -47,3 +59,4 @@ for f = 1:length(D0_list)
     grid on;
 end
 sgtitle('Gaussian Lowpass Filter Profiles (center row)');
+save_figure('GaussianMask_1D');

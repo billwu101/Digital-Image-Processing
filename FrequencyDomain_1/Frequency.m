@@ -6,3 +6,4 @@ fileList = [dir('*.jpeg'); dir('*.jpg'); dir('*.png'); dir('*.tiff'); dir('*.tif
 for f = 1:length(fileList)
     processImage(fileList(f).name);
 end
+
