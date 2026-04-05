@@ -17,16 +17,10 @@ function processImage(filename)
     F = fft2(img);
     F_shifted = fftshift(F);
 
-    % Build distance matrix D(u,v) from center
-    u = 0:M-1;
-    v = 0:N-1;
-    u = ifftshift(u - floor(M/2));
-    v = ifftshift(v - floor(N/2));
-    [V, U] = meshgrid(v, u);
-    D = sqrt(U.^2 + V.^2);
-
-    % Cutoff frequencies to test
-    D0_list = [100, 300, 600, 1600];
+    % Derive D0_list from saved filter filenames in GaussianFilterMask_2
+    filter_dir = '../GaussianFilterMask_2/GaussianFilter';
+    mat_files = dir(fullfile(filter_dir, 'GaussianFilter_D0_*.mat'));
+    D0_list = sort(cellfun(@(s) sscanf(s, 'GaussianFilter_D0_%d.mat'), {mat_files.name}));
 
     figure('Name', name, 'NumberTitle', 'off');
     num_cols = length(D0_list) + 1;
@@ -46,8 +40,12 @@ function processImage(filename)
     for k = 1:length(D0_list)
         D0 = D0_list(k);
 
-        % Gaussian lowpass filter mask: H = exp(-D^2 / (2*D0^2))
-        H = exp(-(D .^ 2) / (2 * D0^2));
+        % Load pre-computed filter from GaussianFilterMask_2
+        data = load(fullfile(filter_dir, sprintf('GaussianFilter_D0_%d.mat', D0)));
+        H = data.H;
+        if ~isequal(size(H), [M, N])
+            H = imresize(H, [M, N]);
+        end
 
         % Apply filter in frequency domain
         G_shifted = H .* F_shifted;

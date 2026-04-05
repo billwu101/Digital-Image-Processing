@@ -1,7 +1,7 @@
 close all; clear; clc;
 
 % Read all images in current folder
- D0_list = [10, 30, 60, 160];
+ D0_list = [200, 500, 1000, 1600];
 
 M = 1000;
 N = M;
@@ -15,9 +15,10 @@ D = sqrt(U.^2 + V.^2);
 
 
 % --- Save filter matrices ---
-if ~exist('GaussianFilter', 'dir')
-    mkdir('GaussianFilter');
+if exist('GaussianFilter', 'dir')
+    rmdir('GaussianFilter', 's');
 end
+mkdir('GaussianFilter');
 for f = 1:length(D0_list)
     D0 = D0_list(f);
     H = exp(-(D .^ 2) / (2 * D0^2));
