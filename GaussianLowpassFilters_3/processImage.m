@@ -12,9 +12,12 @@ function processImage(filename)
     img = double(img);
 
     [M, N] = size(img);
+    P = 2 * M;
+    Q = 2 * N;
 
-    % Compute 2D DFT and shift
-    F = fft2(img);
+    % Zero padding and compute 2D DFT
+    img_padded = padarray(img, [M, N], 0, 'post');
+    F = fft2(img_padded);   % P×Q DFT
     F_shifted = fftshift(F);
 
     % Derive D0_list from saved filter filenames in GaussianFilterMask_2
@@ -40,19 +43,20 @@ function processImage(filename)
     for k = 1:length(D0_list)
         D0 = D0_list(k);
 
-        % Load pre-computed filter from GaussianFilterMask_2
-        data = load(fullfile(filter_dir, sprintf('GaussianFilter_D0_%d.mat', D0)));
-        H = data.H;
-        if ~isequal(size(H), [M, N])
-            H = imresize(H, [M, N]);
-        end
+        % Build Gaussian filter at P×Q (padded size)
+        u = ifftshift((0:P-1) - floor(P/2));
+        v = ifftshift((0:Q-1) - floor(Q/2));
+        [V, U] = meshgrid(v, u);
+        D_pad = sqrt(U.^2 + V.^2);
+        H = exp(-(D_pad.^2) / (2 * D0^2));
 
         % Apply filter in frequency domain
         G_shifted = H .* F_shifted;
         G = ifftshift(G_shifted);
 
-        % Inverse DFT to get filtered image
+        % Inverse DFT and crop back to original size
         g = real(ifft2(G));
+        g = g(1:M, 1:N);
         g = uint8(g);
 
         % Display filtered image
