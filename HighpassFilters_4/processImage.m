@@ -33,12 +33,10 @@ function processImage(filename)
     imshow(uint8(img));
     title('Original');
 
-    % Log magnitude of original spectrum
-    magnitude_orig = log(1 + abs(F_shifted));
+    % Placeholder to keep layout aligned
     subplot(2, num_cols, num_cols + 1);
-    imshow(magnitude_orig, []);
-    title('Original Spectrum');
-    colormap(gca, 'jet');
+    imshow(uint8(img));
+    title('Original');
 
     for k = 1:length(D0_list)
         D0 = D0_list(k);
@@ -55,26 +53,28 @@ function processImage(filename)
         G = ifftshift(G_shifted);
 
         % Inverse DFT and crop back to original size
-        g = real(ifft2(G));
-        g = g(1:M, 1:N);
-        g = uint8(g);
+        g_hp = real(ifft2(G));
+        g_hp = g_hp(1:M, 1:N);
 
-        % Display filtered image
+        % Sharpened image: original + high-pass result
+        g_sharp = img + g_hp;
+        g_sharp = uint8(min(max(g_sharp, 0), 255));
+
+        % Display high-pass filtered image (row 1)
         subplot(2, num_cols, k + 1);
-        imshow(g);
+        imshow(uint8(min(max(g_hp, 0), 255)));
         title(sprintf('GHPF D_0 = %d', D0));
 
-        % Display filter mask spectrum
+        % Display sharpened image (row 2)
         subplot(2, num_cols, num_cols + k + 1);
-        imshow(log(1 + abs(G_shifted)), []);
-        title(sprintf('Filtered Spectrum (D_0=%d)', D0));
-        colormap(gca, 'jet');
+        imshow(g_sharp);
+        title(sprintf('Sharpened D_0 = %d', D0));
 
-        fprintf('Image: %s | D0 = %3d | Output range: [%d, %d]\n', ...
-            filename, D0, min(g(:)), max(g(:)));
+        fprintf('Image: %s | D0 = %3d | Sharpened range: [%d, %d]\n', ...
+            filename, D0, min(g_sharp(:)), max(g_sharp(:)));
     end
 
-    sgtitle(['Gaussian Highpass Filter - ', name], 'Interpreter', 'none');
+    sgtitle(['Gaussian Highpass Filter & Sharpening - ', name], 'Interpreter', 'none');
 
     save_figure(filename);
 
