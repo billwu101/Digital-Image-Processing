@@ -28,13 +28,18 @@ function processImage(filename)
     figure('Name', name, 'NumberTitle', 'off');
     num_cols = length(D0_list) + 1;
 
-    % Original image
-    subplot(2, num_cols, 1);
+    % Row 1: Original image
+    subplot(3, num_cols, 1);
     imshow(uint8(img));
     title('Original');
 
-    % Placeholder to keep layout aligned
-    subplot(2, num_cols, num_cols + 1);
+    % Row 2: placeholder
+    subplot(3, num_cols, num_cols + 1);
+    imshow(uint8(img));
+    title('Original');
+
+    % Row 3: placeholder
+    subplot(3, num_cols, 2 * num_cols + 1);
     imshow(uint8(img));
     title('Original');
 
@@ -60,13 +65,15 @@ function processImage(filename)
         g_sharp = img + g_hp;
         g_sharp = uint8(min(max(g_sharp, 0), 255));
 
-        % Display high-pass filtered image (row 1)
-        subplot(2, num_cols, k + 1);
-        imshow(uint8(min(max(g_hp, 0), 255)));
+        % Row 1: Original (already filled above)
+
+        % Row 2: High-pass filtered result (auto-scaled to show edges)
+        subplot(3, num_cols, num_cols + k + 1);
+        imshow(g_hp, []);
         title(sprintf('GHPF D_0 = %d', D0));
 
-        % Display sharpened image (row 2)
-        subplot(2, num_cols, num_cols + k + 1);
+        % Row 3: Sharpened image
+        subplot(3, num_cols, 2 * num_cols + k + 1);
         imshow(g_sharp);
         title(sprintf('Sharpened D_0 = %d', D0));
 
