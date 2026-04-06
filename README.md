@@ -2,10 +2,6 @@
 
 **Image Enhancement in the Frequency Domain**
 
-- **Student Name:** 吳晉緯
-- **Student ID:** B11102129
-- **Department / Class:** 電子工程系
-- **Date:** 2026-04-15
 - **Image A:** bright_with_rect.png
 - **Image B:** Moon.jpeg
 
