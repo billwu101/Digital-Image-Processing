@@ -20,4 +20,5 @@ end
 % Display and save
 imshow(img);
 title('Vertical Grayscale Stripes');
-imwrite(img, 'grayscale_stripes.png');
+if ~exist('../Picture', 'dir'), mkdir('../Picture'); end
+imwrite(img, '../Picture/grayscale_stripes.png');
