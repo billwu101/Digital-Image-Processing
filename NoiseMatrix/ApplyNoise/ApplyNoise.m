@@ -1,7 +1,7 @@
 % Apply Noise to Grayscale Stripes Image
 % Three noise levels: Low / Medium / High
 % Displays a 3x4 grid: each row = one level, cols = Original/Gaussian/S&P/Uniform
-
+clear;close all;clc;
 % ── Add noise function directories to MATLAB path ─────────────────────────
 noise_root = fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(noise_root, 'GaussianNoise'));

@@ -10,6 +10,8 @@
 %   deviation possible at image boundaries due to uint8 clipping).
 %   For Salt & Pepper   → count fraction of 0s (pepper) and 255s (salt) in ROI.
 
+clear;close all;clc;
+
 % ── Paths ────────────────────────────────────────────────────────────────
 roi_root   = fileparts(mfilename('fullpath'));
 hw4_root   = fileparts(roi_root);
