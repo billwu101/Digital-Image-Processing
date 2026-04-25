@@ -1,7 +1,7 @@
 % Display original image and its R, G, B component images for all images in picture folder
 close all;clear;clc;
 scriptDir = fileparts(mfilename('fullpath'));
-picDir = fullfile(scriptDir, '..', '..', 'Picture');
+picDir = fullfile(scriptDir, '..', 'Picture');
 
 fileList = dir(fullfile(picDir, '*.jpg'));
 fileList = [fileList; dir(fullfile(picDir, '*.jpeg'))];
@@ -42,4 +42,13 @@ for i = 1:length(fileList)
     subplot(1,4,4);
     imshow(B);
     title('Blue Component');
+
+    [~, img_name, ~] = fileparts(fileList(i).name);
+    out_dir = fullfile(scriptDir, 'result');
+    if ~exist(out_dir, 'dir'); mkdir(out_dir); end
+    saveas(gcf, fullfile(out_dir, [img_name '_rgb.png']));
+
+    imwrite(R, fullfile(out_dir, [img_name '_R.png']));
+    imwrite(G, fullfile(out_dir, [img_name '_G.png']));
+    imwrite(B, fullfile(out_dir, [img_name '_B.png']));
 end

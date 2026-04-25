@@ -1,7 +1,7 @@
 % Convert RGB to HSV using both rgb2hsv() and manual equations, then compare
 close all;clear;clc;
 scriptDir = fileparts(mfilename('fullpath'));
-picDir = fullfile(scriptDir, '..', '..', 'Picture');
+picDir = fullfile(scriptDir, '..', 'Picture');
 
 fileList = dir(fullfile(picDir, '*.jpg'));
 fileList = [fileList; dir(fullfile(picDir, '*.jpeg'))];
@@ -66,6 +66,18 @@ for i = 1:length(fileList)
     subplot(2,4,6); imshow(H2); colormap(gca, hsv);  title('Hue (Equations)');
     subplot(2,4,7); imshow(S2);                      title('Saturation (Equations)');
     subplot(2,4,8); imshow(V2);                      title('Value (Equations)');
+
+    [~, img_name, ~] = fileparts(fileList(i).name);
+    out_dir = fullfile(scriptDir, 'result');
+    if ~exist(out_dir, 'dir'); mkdir(out_dir); end
+    saveas(gcf, fullfile(out_dir, [img_name '_hsv.png']));
+
+    imwrite(im2uint8(H1), fullfile(out_dir, [img_name '_H_builtin.png']));
+    imwrite(im2uint8(S1), fullfile(out_dir, [img_name '_S_builtin.png']));
+    imwrite(im2uint8(V1), fullfile(out_dir, [img_name '_V_builtin.png']));
+    imwrite(im2uint8(H2), fullfile(out_dir, [img_name '_H_eq.png']));
+    imwrite(im2uint8(S2), fullfile(out_dir, [img_name '_S_eq.png']));
+    imwrite(im2uint8(V2), fullfile(out_dir, [img_name '_V_eq.png']));
 
     %% --- Figure 3: absolute difference ---
 %     figure;

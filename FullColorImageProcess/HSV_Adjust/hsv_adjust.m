@@ -3,7 +3,7 @@
 close all; clear; clc;
 
 scriptDir = fileparts(mfilename('fullpath'));
-picDir = fullfile(scriptDir, '..', '..', 'Picture');
+picDir = fullfile(scriptDir, '..', 'Picture');
 
 fileList = dir(fullfile(picDir, '*.jpg'));
 fileList = [fileList; dir(fullfile(picDir, '*.jpeg'))];

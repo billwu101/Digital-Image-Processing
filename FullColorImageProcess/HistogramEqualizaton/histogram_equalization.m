@@ -5,7 +5,7 @@
 close all; clear; clc;
 
 scriptDir = fileparts(mfilename('fullpath'));
-picDir = fullfile(scriptDir, '..', '..', 'Picture');
+picDir = fullfile(scriptDir, '..', 'Picture');
 
 fileList = dir(fullfile(picDir, '*.jpg'));
 fileList = [fileList; dir(fullfile(picDir, '*.jpeg'))];
@@ -53,4 +53,12 @@ for i = 1:length(fileList)
     subplot(2,3,6);
     imhist(rgb2gray(im2uint8(img_hsv_eq)));
     title('Histogram: HSV Equalized');
+
+    [~, img_name, ~] = fileparts(fileList(i).name);
+    out_dir = fullfile(scriptDir, 'result');
+    if ~exist(out_dir, 'dir'); mkdir(out_dir); end
+    saveas(gcf, fullfile(out_dir, [img_name '_histeq.png']));
+
+    imwrite(img_rgb_eq,           fullfile(out_dir, [img_name '_rgb_eq.png']));
+    imwrite(im2uint8(img_hsv_eq), fullfile(out_dir, [img_name '_hsv_eq.png']));
 end
