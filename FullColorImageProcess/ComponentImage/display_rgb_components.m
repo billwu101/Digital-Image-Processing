@@ -1,5 +1,5 @@
 % Display original image and its R, G, B component images for all images in picture folder
-
+close all;clear;clc;
 scriptDir = fileparts(mfilename('fullpath'));
 picDir = fullfile(scriptDir, '..', '..', 'Picture');
 
