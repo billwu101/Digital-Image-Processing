@@ -1,0 +1,444 @@
+# Introduction to Image Processing — Homework #4
+
+**Image Restoration**
+
+- **Image A:** grayscale_stripes.png
+- **Image B:** 04_lena_style_alternative_test.png
+
+---
+
+## AI Usage Disclosure
+
+| Item | Content |
+|------|---------|
+| AI Used | Yes |
+| Tools | ChatGPT / Claude Code for VS Code |
+| Scope | Structure organization, wording refinement, MATLAB workflow explanation, ROI and PSNR table organization, and README/report formatting |
+| Note | AI was mainly used to help organize the workflow and write-up for `VerticalStripes.m`, `GaussianNoise.m`, `UniformNoise.m`, `SaltPepperNoise.m`, `ApplyNoise.m`, `ROI.m`, `Restore.m`, and `PSNR.m`. Actual image outputs, noise generation, ROI estimation, restoration results, and PSNR values are based on the submitted MATLAB files and generated results. |
+
+---
+
+## Project Structure
+
+```text
+HW4/
+├── Picture/
+│   ├── grayscale_stripes.png                         # Image A: generated vertical grayscale stripes
+│   └── 04_lena_style_alternative_test.png            # Image B: selected natural image
+├── CreateStripes/
+│   └── VerticalStripes.m                             # Creates Image A and saves it to Picture/
+├── NoiseMatrix/
+│   ├── GaussianNoise/
+│   │   ├── GaussianNoise.m                           # function n = GaussianNoise(M, N, mu, sigma)
+│   │   └── save_figure.m                             # Figure saving utility
+│   ├── UniformNoise/
+│   │   ├── UniformNoise.m                            # function n = UniformNoise(M, N, a, b)
+│   │   └── save_figure.m                             # Figure saving utility
+│   ├── SaltPepperNoise/
+│   │   ├── SaltPepperNoise.m                         # function out = SaltPepperNoise(img, Pa, Pb)
+│   │   └── save_figure.m                             # Figure saving utility
+│   └── ApplyNoise/
+│       ├── ApplyNoise.m                              # Applies all noise types to images in Picture/
+│       └── result/
+│           ├── grayscale_stripes/
+│           │   ├── ApplyNoise_result.png             # 1×4 comparison result
+│           │   ├── original.png
+│           │   ├── gaussian_low.png
+│           │   ├── gaussian_medium.png
+│           │   ├── gaussian_high.png
+│           │   ├── saltpepper_low.png
+│           │   ├── saltpepper_medium.png
+│           │   ├── saltpepper_high.png
+│           │   ├── uniform_low.png
+│           │   ├── uniform_medium.png
+│           │   └── uniform_high.png
+│           └── 04_lena_style_alternative_test/
+│               ├── ApplyNoise_result.png             # 1×4 comparison result
+│               ├── original.png
+│               ├── gaussian_low.png
+│               ├── gaussian_medium.png
+│               ├── gaussian_high.png
+│               ├── saltpepper_low.png
+│               ├── saltpepper_medium.png
+│               ├── saltpepper_high.png
+│               ├── uniform_low.png
+│               ├── uniform_medium.png
+│               └── uniform_high.png
+├── ROI/
+│   ├── ROI.m                                         # Estimates noise distribution from uniform ROI
+│   └── result/
+│       ├── grayscale_stripes/
+│       │   ├── ROI_low.png
+│       │   ├── ROI_medium.png
+│       │   └── ROI_high.png
+│       └── 04_lena_style_alternative_test/
+│           ├── ROI_low.png
+│           ├── ROI_medium.png
+│           └── ROI_high.png
+├── Restore/
+│   ├── Restore.m                                     # Restores noisy images using four filters
+│   └── result/
+│       ├── grayscale_stripes/
+│       │   ├── Restore_low.png
+│       │   ├── Restore_medium.png
+│       │   ├── Restore_high.png
+│       │   └── [individual restoration outputs]
+│       └── 04_lena_style_alternative_test/
+│           ├── Restore_low.png
+│           ├── Restore_medium.png
+│           ├── Restore_high.png
+│           └── [individual restoration outputs]
+├── PSNR/
+│   ├── PSNR.m                                        # Computes and plots PSNR tables
+│   └── result/
+│       ├── grayscale_stripes/
+│       │   ├── PSNR_summary.png
+│       │   ├── PSNR_gaussian.png
+│       │   ├── PSNR_saltpepper.png
+│       │   └── PSNR_uniform.png
+│       └── 04_lena_style_alternative_test/
+│           ├── PSNR_summary.png
+│           ├── PSNR_gaussian.png
+│           ├── PSNR_saltpepper.png
+│           └── PSNR_uniform.png
+└── PDF/
+    └── HW4.pdf                                      # Original assignment description
+```
+
+---
+
+## Execution Flow
+
+Run the scripts in the following order:
+
+```text
+1. CreateStripes/VerticalStripes.m
+2. NoiseMatrix/ApplyNoise/ApplyNoise.m
+3. ROI/ROI.m
+4. Restore/Restore.m
+5. PSNR/PSNR.m
+```
+
+The scripts are designed to read images from the `Picture/` folder and save output results to their corresponding `result/` folders.
+
+---
+
+## 0. Image A and Image B
+
+**Goal:** Prepare two grayscale test images for noise simulation, ROI-based noise estimation, image restoration, and PSNR evaluation.
+
+### Method & Settings
+
+Image A is a synthetic vertical grayscale stripe image generated by `VerticalStripes.m`. It contains 16 vertical stripes from dark gray to light gray:
+
+```matlab
+width = 300;
+height = 300;
+num_stripes = 16;
+gray_levels = linspace(64, 210, num_stripes);
+imwrite(img, fullfile('..', 'Picture', 'grayscale_stripes.png'));
+```
+
+Image B is the selected natural image `04_lena_style_alternative_test.png`. It contains facial regions, edges, and texture details, so it is useful for testing how restoration filters affect natural image details.
+
+### AI Usage
+
+1. Helped organize the image preparation workflow and write-up
+2. Confirmed that `grayscale_stripes.png` should be saved in the `Picture/` folder
+3. Suggested adding a natural image in addition to the stripe image so restoration quality can be evaluated on both uniform regions and texture-rich regions
+
+---
+
+## 1. Noise Matrix Generation and Corrupted Images
+
+**Goal:** Generate Gaussian noise, Uniform noise, and Salt-and-Pepper noise, then apply them to all images in the `Picture/` folder.
+
+### Method & Formula
+
+Gaussian and Uniform noise are additive noise models. The noisy image is obtained by adding the noise matrix to the original image and clipping the values to the valid grayscale range `[0, 255]`:
+
+```matlab
+Gaussian: n(x,y) = mu + sigma * randn(M,N)
+g(x,y) = clip(f(x,y) + n(x,y))
+
+Uniform: n(x,y) = a + (b-a) * rand(M,N)
+g(x,y) = clip(f(x,y) + n(x,y))
+```
+
+Salt-and-Pepper noise is different. It should directly overwrite selected pixels instead of being added to the image:
+
+```matlab
+if r < Pa
+    g(x,y) = 0;      % pepper
+elseif r < Pa + Pb
+    g(x,y) = 255;    % salt
+else
+    g(x,y) = f(x,y);
+end
+```
+
+### Noise Level Settings
+
+| Level | Gaussian Noise | Salt & Pepper Noise | Uniform Noise |
+|------|----------------|---------------------|---------------|
+| Low | mu = 0, sigma = 10 | Pa = 0.01, Pb = 0.01 | a = -20, b = 20 |
+| Medium | mu = 0, sigma = 25 | Pa = 0.05, Pb = 0.05 | a = -50, b = 50 |
+| High | mu = 0, sigma = 50 | Pa = 0.15, Pb = 0.15 | a = -100, b = 100 |
+
+### Function Design
+
+The three noise scripts were written as callable functions:
+
+```matlab
+function n = GaussianNoise(M, N, mu, sigma)
+function n = UniformNoise(M, N, a, b)
+function out = SaltPepperNoise(img, Pa, Pb)
+```
+
+`ApplyNoise.m` dynamically adds each function folder to the MATLAB path and calls these functions directly. This avoids duplicating noise-generation code inside `ApplyNoise.m`.
+
+### Observations
+
+- Low noise keeps most stripe boundaries and image structures visible.
+- Gaussian and Uniform noise create continuous grayscale disturbance.
+- Salt-and-Pepper noise creates obvious black and white impulse pixels.
+- As the noise level increases, both Image A and Image B become harder to visually interpret.
+
+### AI Usage
+
+1. Helped design `GaussianNoise.m`, `UniformNoise.m`, and `SaltPepperNoise.m` as function-style scripts
+2. Helped modify `ApplyNoise.m` so it calls the three noise functions instead of rewriting noise code
+3. Confirmed that Salt-and-Pepper noise should overwrite pixels rather than be added as a matrix
+4. Helped add Low / Medium / High noise levels
+5. Helped modify `imread` and `imwrite` paths so images are read from and saved under the correct folders
+6. Helped explain why title strings containing `\sigma` may display incorrectly if the interpreter is not handled properly
+
+---
+
+## 2. ROI Noise Distribution Estimation
+
+**Goal:** Estimate the noise distribution from a uniform region of the corrupted images and compare the estimated parameters with the theoretical parameters used to generate the noise.
+
+### Method & Formula
+
+`ROI.m` automatically searches for a low-variance `50×50` region in the original image. This region is treated as a near-uniform ROI.
+
+For Gaussian and Uniform noise, the noise inside the ROI is estimated by subtracting the original ROI from the corrupted ROI:
+
+```matlab
+n_roi = g_roi - f_roi;
+mu_est = mean(n_roi(:));
+sigma_est = std(n_roi(:));
+```
+
+For Uniform noise, the theoretical standard deviation is:
+
+```matlab
+sigma = (b - a) / sqrt(12)
+```
+
+For Salt-and-Pepper noise, the pepper and salt probabilities are estimated by counting pixels equal to 0 and 255 in the ROI:
+
+```matlab
+Pa_est = number_of_pixels_equal_to_0 / number_of_pixels_in_ROI;
+Pb_est = number_of_pixels_equal_to_255 / number_of_pixels_in_ROI;
+```
+
+### ROI Location Summary
+
+| Image | File Name | ROI Rows | ROI Cols | Baseline Mean | ROI Variance |
+|------|-----------|---------:|---------:|--------------:|-------------:|
+| Image A | grayscale_stripes | 1-50 | 151-200 | 150.4 | 54.77 |
+| Image B | 04_lena_style_alternative_test | 226-275 | 71-120 | 133.7 | 1.54 |
+
+### Estimated Parameters — Image A
+
+| Level | Noise | Theoretical Parameters | Estimated Parameters |
+|------|-------|------------------------|----------------------|
+| Low | Gaussian | mu = 0, sigma = 10 | mu = 0.09, sigma = 9.91 |
+| Low | Uniform | mu = 0, sigma = 11.55 | mu = -0.13, sigma = 11.54 |
+| Low | Salt & Pepper | Pa = 0.010, Pb = 0.010 | Pa = 0.0108, Pb = 0.0120 |
+| Medium | Gaussian | mu = 0, sigma = 25 | mu = -0.10, sigma = 24.90 |
+| Medium | Uniform | mu = 0, sigma = 28.87 | mu = -0.11, sigma = 28.97 |
+| Medium | Salt & Pepper | Pa = 0.050, Pb = 0.050 | Pa = 0.0468, Pb = 0.0512 |
+| High | Gaussian | mu = 0, sigma = 50 | mu = 0.62, sigma = 49.37 |
+| High | Uniform | mu = 0, sigma = 57.74 | mu = -1.89, sigma = 57.04 |
+| High | Salt & Pepper | Pa = 0.150, Pb = 0.150 | Pa = 0.1568, Pb = 0.1480 |
+
+### Estimated Parameters — Image B
+
+| Level | Noise | Theoretical Parameters | Estimated Parameters |
+|------|-------|------------------------|----------------------|
+| Low | Gaussian | mu = 0, sigma = 10 | mu = -0.16, sigma = 9.84 |
+| Low | Uniform | mu = 0, sigma = 11.55 | mu = 0.28, sigma = 11.62 |
+| Low | Salt & Pepper | Pa = 0.010, Pb = 0.010 | Pa = 0.0072, Pb = 0.0088 |
+| Medium | Gaussian | mu = 0, sigma = 25 | mu = 0.12, sigma = 25.73 |
+| Medium | Uniform | mu = 0, sigma = 28.87 | mu = 0.40, sigma = 28.44 |
+| Medium | Salt & Pepper | Pa = 0.050, Pb = 0.050 | Pa = 0.0436, Pb = 0.0480 |
+| High | Gaussian | mu = 0, sigma = 50 | mu = -1.11, sigma = 48.73 |
+| High | Uniform | mu = 0, sigma = 57.74 | mu = -0.66, sigma = 57.94 |
+| High | Salt & Pepper | Pa = 0.150, Pb = 0.150 | Pa = 0.1508, Pb = 0.1692 |
+
+### Observations
+
+- Gaussian and Uniform noise estimates are generally close to their theoretical means and standard deviations.
+- Salt-and-Pepper estimates are also close to the theoretical probabilities, but small sampling errors occur because only a finite ROI is used.
+- The ROI is selected automatically by searching for a low-variance block, not manually selected.
+
+### AI Usage
+
+1. Helped create `ROI.m` for estimating noise parameters from a uniform region
+2. Explained whether the ROI is automatically selected or manually selected
+3. Helped organize the ROI table and theoretical-versus-estimated parameter comparison
+4. Helped explain why random sampling, ROI size, and clipping can make estimated parameters slightly different from theoretical values
+5. Helped modify `ROI.m` so it reads all images from the `Picture/` folder
+
+---
+
+## 3. Image Restoration
+
+**Goal:** Restore corrupted images using multiple spatial-domain restoration filters and compare their performance.
+
+### Method & Formula
+
+`Restore.m` applies four restoration methods to each noisy image:
+
+1. **Median Filter**
+2. **Alpha-Trimmed Mean Filter**
+3. **Adaptive Local Noise Reduction Filter**
+4. **Adaptive Median Filter**
+
+Median filter uses the median value inside a local neighborhood:
+
+```matlab
+output = median of 3×3 neighborhood
+```
+
+Alpha-trimmed mean filter sorts the pixels in a local window, removes the lowest and highest extremes, and averages the remaining values:
+
+```matlab
+sort 3×3 window
+remove d/2 lowest and d/2 highest values
+output = mean(remaining values)
+```
+
+The adaptive local noise reduction filter uses local mean and local variance:
+
+```matlab
+f_hat = g - (sigma_n^2 / sigma_L^2) * (g - mu_L)
+```
+
+The adaptive median filter starts with a small window and enlarges it when the median is still an impulse value:
+
+```matlab
+S = 3, 5, 7
+S_max = 7
+```
+
+### Main Parameters
+
+| Method | Main Setting |
+|-------|--------------|
+| Median Filter | 3×3 window |
+| Alpha-Trimmed Mean Filter | 3×3 window, d = 2 |
+| Adaptive Local Noise Reduction | local mean and local variance based adjustment |
+| Adaptive Median Filter | window size increases up to S_max = 7 |
+
+### Observations
+
+- Median filter and Adaptive Median filter are most effective for Salt-and-Pepper noise.
+- Alpha-Trimmed Mean filter often provides a good balance between smoothing Gaussian / Uniform noise and preserving edges.
+- Adaptive Local Noise Reduction filter depends strongly on local variance and estimated noise variance.
+- No single restoration filter performs best for every noise type, so the restoration method should be selected based on the noise model.
+
+### AI Usage
+
+1. Helped create and organize `Restore.m`
+2. Helped remove the original image column from the restoration subplot layout
+3. Helped add Adaptive Local Noise Reduction Filter and Adaptive Median Filter
+4. Helped explain the difference between Median, Alpha-Trimmed Mean, Adaptive Local, and Adaptive Median filters
+5. Helped modify `Restore.m` so it reads all images from the `Picture/` folder
+6. Helped explain MATLAB preallocation and the `SAGROW` warning related to dynamically growing arrays
+7. Helped clarify that `clear; close all; clc` only resets variables, figures, and the command window, but does not replace correct path setting or function organization
+
+---
+
+## 4. PSNR Evaluation
+
+**Goal:** Use PSNR to quantitatively compare the noisy image and restored images against the clean original image.
+
+### Method & Formula
+
+PSNR is computed from MSE. A higher PSNR means the processed image is closer to the original reference image.
+
+```matlab
+MSE = mean((f(x,y) - g(x,y))^2)
+PSNR = 20 * log10(255 / sqrt(MSE))
+```
+
+A function handle is used to calculate PSNR conveniently:
+
+```matlab
+psnr_fn = @(img, ref) 20 * log10(255 / sqrt(mean((double(img(:)) - double(ref(:))).^2)));
+```
+
+The variable `psnr_table = zeros(3, 3, 3)` is used as a preallocated array for storing PSNR values across noise levels, noise types, and restoration methods.
+
+### Image A PSNR Results (dB)
+
+| Level | Noise | Noisy | Median | Alpha-Trim | Adapt Local | Adapt Median |
+|------|-------|------:|-------:|-----------:|------------:|-------------:|
+| Low | Gaussian | 28.1 | 35.2 | 37.0 | 30.7 | 31.5 |
+| Low | Salt & Pepper | 22.6 | 47.3 | 42.0 | 22.6 | 65.2 |
+| Low | Uniform | 26.9 | 32.2 | 34.9 | 30.6 | 29.2 |
+| Medium | Gaussian | 20.2 | 27.7 | 29.4 | 22.8 | 23.5 |
+| Medium | Salt & Pepper | 15.5 | 39.1 | 29.5 | 15.5 | 49.8 |
+| Medium | Uniform | 18.9 | 24.4 | 27.2 | 22.7 | 21.2 |
+| High | Gaussian | 14.6 | 21.7 | 23.5 | 17.3 | 17.8 |
+| High | Salt & Pepper | 10.7 | 23.3 | 19.9 | 11.1 | 39.9 |
+| High | Uniform | 13.2 | 18.5 | 21.3 | 16.8 | 15.5 |
+
+### Image B PSNR Results (dB)
+
+| Level | Noise | Noisy | Median | Alpha-Trim | Adapt Local | Adapt Median |
+|------|-------|------:|-------:|-----------:|------------:|-------------:|
+| Low | Gaussian | 28.1 | 34.6 | 33.5 | 30.6 | 31.2 |
+| Low | Salt & Pepper | 22.8 | 42.4 | 35.0 | 22.8 | 32.6 |
+| Low | Uniform | 26.9 | 31.9 | 32.5 | 30.3 | 29.0 |
+| Medium | Gaussian | 20.2 | 27.3 | 28.4 | 22.7 | 23.3 |
+| Medium | Salt & Pepper | 15.7 | 35.4 | 28.6 | 15.7 | 36.2 |
+| Medium | Uniform | 18.9 | 24.3 | 26.7 | 22.6 | 21.0 |
+| High | Gaussian | 14.4 | 21.6 | 23.1 | 17.2 | 17.6 |
+| High | Salt & Pepper | 10.9 | 23.7 | 20.1 | 11.7 | 33.8 |
+| High | Uniform | 13.0 | 18.4 | 21.1 | 16.8 | 15.2 |
+
+### Observations
+
+- For Salt-and-Pepper noise, Median and Adaptive Median filters achieve the largest PSNR improvement.
+- For Gaussian and Uniform noise, Alpha-Trimmed Mean filter often gives strong PSNR results.
+- PSNR decreases when the noise level increases, which matches the visual degradation in the corrupted images.
+- PSNR should be interpreted together with visual results because a high PSNR does not always mean the most visually natural result.
+
+### AI Usage
+
+1. Helped move the PSNR calculation logic from `Restore.m` into a separate `PSNR.m`
+2. Helped add PSNR fields for Adaptive Local and Adaptive Median restoration results
+3. Helped display the numerical PSNR results as figures
+4. Helped explain what PSNR means and how it should be interpreted
+5. Helped explain the role of `psnr_table = zeros(3, 3, 3)` for preallocation
+6. Helped explain the function handle `psnr_fn = @(img, ref) ...`
+7. Helped modify `PSNR.m` so it reads all images from the `Picture/` folder
+
+---
+
+## Output Summary
+
+This project demonstrates five main parts of spatial-domain image restoration:
+
+1. **Test image preparation** using a synthetic grayscale stripe image and a natural image
+2. **Noise generation** using Gaussian, Uniform, and Salt-and-Pepper noise models
+3. **Noise distribution estimation** using an automatically selected uniform ROI
+4. **Image restoration** using Median, Alpha-Trimmed Mean, Adaptive Local Noise Reduction, and Adaptive Median filters
+5. **Quantitative evaluation** using PSNR tables and PSNR summary figures
+
+Overall, the results show that different noise models require different restoration methods. Median-based filters are especially effective for Salt-and-Pepper noise, while Alpha-Trimmed Mean filtering generally performs well for Gaussian and Uniform noise. ROI estimation confirms that the simulated noise parameters are close to the theoretical parameters, with small differences caused by random sampling, finite ROI size, and pixel clipping.
