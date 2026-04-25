@@ -101,8 +101,7 @@ HW4/
 │           ├── PSNR_gaussian.png
 │           ├── PSNR_saltpepper.png
 │           └── PSNR_uniform.png
-└── PDF/
-    └── HW4.pdf                                      # Original assignment description
+
 ```
 
 ---
