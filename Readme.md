@@ -63,8 +63,7 @@ HW5/
 │       ├── skeleton_parula.png                   # Parula colormap output
 │       ├── skeleton_custom_cmap.png              # Custom colormap comparison figure
 │       └── skeleton_custom_cmap_img.png          # Custom colormap output image
-└── PDF/
-    └── HW5.pdf                                   # Assignment description
+
 ```
 
 ---
